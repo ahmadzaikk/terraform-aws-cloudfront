@@ -16,7 +16,9 @@ variable "alb_domain_name" {
 variable "acm_certificate_arn" {
   description = "ARN of the ACM certificate for CloudFront"
   type        = string
+  default     = "" # Set a default if it's not always required
 }
+
 
 variable "tags" {
   default     = {}
