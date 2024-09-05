@@ -13,6 +13,9 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                  = "sigv4"
 }
 
+data "aws_cloudfront_cache_policy" "cache-optimized" {
+  name = "Managed-CachingOptimized"
+}
 
 # Define CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
@@ -30,7 +33,7 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id       = "S3-${aws_s3_bucket.this.bucket}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true 
-
+    cache_policy_id  = data.aws_cloudfront_cache_policy.cache-optimized.id
     allowed_methods = ["GET", "HEAD"]
     cached_methods  = ["GET", "HEAD"]
 
