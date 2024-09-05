@@ -6,11 +6,11 @@ resource "aws_s3_bucket" "this" {
 
 resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this.bucket_regional_domain_name : var.alb_domain_name
-    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_domain_name}"
+    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
+    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
 
     s3_origin_config {
-      origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path : null
+      origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this[0].cloudfront_access_identity_path : null
     }
 
     custom_origin_config {
@@ -33,9 +33,9 @@ resource "aws_cloudfront_origin_access_identity" "this" {
 resource "aws_s3_bucket_policy" "this" {
   count = var.origin_type == "s3" ? 1 : 0
 
-  bucket = aws_s3_bucket.this.bucket
+  bucket = aws_s3_bucket.this[0].id
 
-  policy = data.aws_iam_policy_document.s3_policy.json
+  policy = data.aws_iam_policy_document.s3_policy[0].json
 }
 
 data "aws_iam_policy_document" "s3_policy" {
@@ -43,11 +43,11 @@ data "aws_iam_policy_document" "s3_policy" {
 
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.this.arn}/*"]
+    resources = ["${aws_s3_bucket.this[0].arn}/*"]
 
     principals {
       type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
+      identifiers = [aws_cloudfront_origin_access_identity.this[0].iam_arn]
     }
   }
 }
