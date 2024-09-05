@@ -1,6 +1,4 @@
-variable "s3_bucket_name" {
-  type = string
-}
+
 
 # S3 Bucket Resource
 resource "aws_s3_bucket" "this" {
