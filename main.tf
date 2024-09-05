@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-  tags  = var.tags
+
   bucket = var.s3_bucket_name
 }
 
@@ -11,15 +11,19 @@ resource "aws_cloudfront_distribution" "this" {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
 
+    # Configurations for S3 origin
     s3_origin_config {
       origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this[0].cloudfront_access_identity_path : null
     }
 
+    # Configurations for ALB origin
     custom_origin_config {
-      origin_protocol_policy = var.origin_type == "alb" ? "http-only" : null
-      http_port              = var.origin_type == "alb" ? 80 : null
-      https_port             = var.origin_type == "alb" ? 443 : null
-      origin_ssl_protocols   = var.origin_type == "alb" ? ["TLSv1.2"] : null
+      count = var.origin_type == "alb" ? 1 : 0
+      
+      origin_protocol_policy = "http-only" # or "https-only" based on your needs
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
 
@@ -27,9 +31,15 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
     viewer_protocol_policy = "allow-all"
 
-    allowed_methods = ["GET", "HEAD"]
+    allowed_methods {
+      items = ["GET", "HEAD"]
+      quantity = 2
+    }
 
-    cached_methods = ["GET", "HEAD"]
+    cached_methods {
+      items = ["GET", "HEAD"]
+      quantity = 2
+    }
   }
 
   restrictions {
