@@ -29,7 +29,7 @@ resource "aws_s3_bucket_policy" "origin" {
     ]
   })
 
- 
+  
 }
 
 # CloudFront Origin Access Identity
@@ -89,7 +89,6 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
-  # Handle the viewer_certificate block conditionally
   dynamic "viewer_certificate" {
     for_each = var.acm_certificate_arn != "" ? [1] : []
     content {
@@ -98,8 +97,6 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
-  # If no certificate is provided, set a default viewer_certificate
-  # This uses the default viewer_certificate if not using an ACM certificate
   viewer_certificate {
     cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
     acm_certificate_arn             = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
