@@ -28,13 +28,15 @@ resource "aws_s3_bucket_policy" "origin" {
       }
     ]
   })
+
+
 }
 
 # CloudFront Origin Access Identity
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = var.origin_access_identity_comment
 
- 
+
 }
 
 # CloudFront Distribution
@@ -50,7 +52,7 @@ resource "aws_cloudfront_distribution" "this" {
 
   default_cache_behavior {
     target_origin_id = "S3-${aws_s3_bucket.origin.id}"
-    
+
     viewer_protocol_policy = var.viewer_protocol_policy
 
     allowed_methods {
@@ -69,6 +71,16 @@ resource "aws_cloudfront_distribution" "this" {
         items    = var.forward_headers
         quantity = length(var.forward_headers)
       }
+
+      cookies {
+        forward = var.forward_cookies
+      }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"  # Adjust if needed
     }
   }
 
