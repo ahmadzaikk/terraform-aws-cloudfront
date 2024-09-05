@@ -13,7 +13,7 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                  = "sigv4"
 }
 
-# CloudFront Distribution with OAC
+# CloudFront Distribution using Origin Access Control (OAC)
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -22,6 +22,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
 
     s3_origin_config {
+      # Remove origin_access_identity, it's not needed with OAC
       origin_access_control_id = aws_cloudfront_origin_access_control.this.id
     }
   }
@@ -64,9 +65,17 @@ resource "aws_s3_bucket_policy" "this" {
         Action = "s3:GetObject"
         Resource = "${aws_s3_bucket.this.arn}/*"
         Principal = {
-          AWS = aws_cloudfront_origin_access_control.this.signing_aws_service_principal
+          Service = "cloudfront.amazonaws.com"
+        },
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.this.id}"
+          }
         }
       }
     ]
   })
 }
+
+# Data for current AWS caller identity
+data "aws_caller_identity" "current" {}
