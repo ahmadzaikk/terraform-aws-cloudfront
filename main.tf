@@ -36,7 +36,7 @@ resource "aws_s3_bucket_policy" "origin" {
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = var.origin_access_identity_comment
 
- 
+  
 }
 
 # CloudFront Distribution
