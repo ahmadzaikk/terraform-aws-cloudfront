@@ -2,6 +2,7 @@
 resource "aws_s3_bucket" "origin" {
   bucket_prefix = var.s3_bucket_prefix
   acl           = "private"
+  tags = merge(var.tags, tomap({"Name" = var.bucket}))
 }
 
 # S3 Bucket policy to allow CloudFront access
