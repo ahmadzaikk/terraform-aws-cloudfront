@@ -20,11 +20,8 @@ resource "aws_cloudfront_distribution" "this" {
   origin {
     domain_name = aws_s3_bucket.this.bucket_regional_domain_name
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
 
-    s3_origin_config {
-      origin_access_control_id = aws_cloudfront_origin_access_control.this.id
-    }
-  }
 
   default_cache_behavior {
     target_origin_id       = "S3-${aws_s3_bucket.this.bucket}"
