@@ -1,8 +1,14 @@
 # S3 Bucket for the origin
 resource "aws_s3_bucket" "origin" {
   bucket_prefix = var.s3_bucket_prefix
-  acl           = "private"
+
   tags = var.tags
+}
+
+# S3 Bucket ACL
+resource "aws_s3_bucket_acl" "origin" {
+  bucket = aws_s3_bucket.origin.id
+  acl    = "private"
 }
 
 # S3 Bucket policy to allow CloudFront access
@@ -22,15 +28,13 @@ resource "aws_s3_bucket_policy" "origin" {
       }
     ]
   })
-
-  tags = var.tags
 }
 
 # CloudFront Origin Access Identity
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = var.origin_access_identity_comment
 
-  tags = var.tags
+ 
 }
 
 # CloudFront Distribution
