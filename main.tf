@@ -29,7 +29,7 @@ resource "aws_s3_bucket_policy" "origin" {
     ]
   })
 
-  
+ 
 }
 
 # CloudFront Origin Access Identity
@@ -55,9 +55,15 @@ resource "aws_cloudfront_distribution" "this" {
 
     viewer_protocol_policy = var.viewer_protocol_policy
 
-    allowed_methods = var.allowed_methods
+    allowed_methods {
+      items = var.allowed_methods
+      quantity = length(var.allowed_methods)
+    }
 
-    cached_methods = var.cached_methods
+    cached_methods {
+      items = var.cached_methods
+      quantity = length(var.cached_methods)
+    }
 
     min_ttl                = var.min_ttl
     default_ttl            = var.default_ttl
@@ -66,7 +72,10 @@ resource "aws_cloudfront_distribution" "this" {
     forwarded_values {
       query_string = var.forward_query_string
 
-      headers = var.forward_headers
+      headers {
+        items = var.forward_headers
+        quantity = length(var.forward_headers)
+      }
 
       cookies {
         forward = var.forward_cookies
@@ -80,12 +89,21 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
+  # Handle the viewer_certificate block conditionally
   dynamic "viewer_certificate" {
     for_each = var.acm_certificate_arn != "" ? [1] : []
     content {
       acm_certificate_arn = var.acm_certificate_arn
       ssl_support_method  = var.ssl_support_method
     }
+  }
+
+  # If no certificate is provided, set a default viewer_certificate
+  # This uses the default viewer_certificate if not using an ACM certificate
+  viewer_certificate {
+    cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
+    acm_certificate_arn             = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
+    ssl_support_method              = var.ssl_support_method
   }
 
   price_class = var.price_class
