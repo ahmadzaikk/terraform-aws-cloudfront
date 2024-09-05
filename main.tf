@@ -4,7 +4,8 @@ resource "aws_s3_bucket" "this" {
   tags   = var.tags
 }
 
-# Define CloudFront Origin Access Control
+
+# Define CloudFront Origin Access Control (OAC)
 resource "aws_cloudfront_origin_access_control" "this" {
   name                              = "${var.s3_bucket_name}-oac"
   description                       = "OAC for S3 bucket ${var.s3_bucket_name}"
@@ -22,7 +23,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
 
     s3_origin_config {
-      origin_access_identity = "origin-access-identity/cloudfront/${aws_cloudfront_origin_access_control.this.id}"  # Updated to use OAC identity
+      origin_access_control_id = aws_cloudfront_origin_access_control.this.id  # Correct usage of OAC
     }
   }
 
