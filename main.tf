@@ -1,7 +1,38 @@
+# S3 Bucket for the origin
+resource "aws_s3_bucket" "origin" {
+  bucket_prefix = var.s3_bucket_prefix
+  acl           = "private"
+}
+
+# S3 Bucket policy to allow CloudFront access
+resource "aws_s3_bucket_policy" "origin" {
+  bucket = aws_s3_bucket.origin.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action = "s3:GetObject"
+        Resource = "${aws_s3_bucket.origin.arn}/*"
+      }
+    ]
+  })
+}
+
+# CloudFront Origin Access Identity
+resource "aws_cloudfront_origin_access_identity" "this" {
+  comment = var.origin_access_identity_comment
+}
+
+# CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = var.origin_domain_name
-    origin_id   = "S3-${var.origin_id}"
+    domain_name = aws_s3_bucket.origin.bucket_regional_domain_name
+    origin_id   = "S3-${aws_s3_bucket.origin.id}"
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
@@ -9,7 +40,7 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   default_cache_behavior {
-    target_origin_id = "S3-${var.origin_id}"
+    target_origin_id = "S3-${aws_s3_bucket.origin.id}"
     
     viewer_protocol_policy = var.viewer_protocol_policy
 
@@ -39,8 +70,4 @@ resource "aws_cloudfront_distribution" "this" {
 
   price_class = var.price_class
   enabled     = var.enabled
-}
-
-resource "aws_cloudfront_origin_access_identity" "this" {
-  comment = var.origin_access_identity_comment
 }
