@@ -29,6 +29,7 @@ resource "aws_cloudfront_distribution" "this" {
   default_cache_behavior {
     target_origin_id       = "S3-${aws_s3_bucket.this.bucket}"
     viewer_protocol_policy = "redirect-to-https"
+    compress               = true 
 
     allowed_methods = ["GET", "HEAD"]
     cached_methods  = ["GET", "HEAD"]
