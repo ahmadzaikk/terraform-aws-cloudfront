@@ -51,6 +51,12 @@ variable "forward_headers" {
   default     = ["Host", "Origin"]
 }
 
+variable "forward_cookies" {
+  description = "The type of cookies that are forwarded to the origin."
+  type        = string
+  default     = "none"
+}
+
 variable "acm_certificate_arn" {
   description = "The ARN of the ACM certificate (leave empty if not using SSL/TLS)."
   type        = string
