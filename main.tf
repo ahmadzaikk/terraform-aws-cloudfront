@@ -55,10 +55,9 @@ resource "aws_cloudfront_distribution" "this" {
 
     viewer_protocol_policy = var.viewer_protocol_policy
 
-    allowed_methods {
-      items          = var.allowed_methods
-      cached_methods = var.cached_methods
-    }
+    allowed_methods = var.allowed_methods
+
+    cached_methods = var.cached_methods
 
     min_ttl                = var.min_ttl
     default_ttl            = var.default_ttl
@@ -67,10 +66,7 @@ resource "aws_cloudfront_distribution" "this" {
     forwarded_values {
       query_string = var.forward_query_string
 
-      headers {
-        items    = var.forward_headers
-        quantity = length(var.forward_headers)
-      }
+      headers = var.forward_headers
 
       cookies {
         forward = var.forward_cookies
