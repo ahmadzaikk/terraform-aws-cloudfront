@@ -1,9 +1,42 @@
+# S3 Bucket (if needed)
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-
+  tags  = var.tags
   bucket = var.s3_bucket_name
 }
 
+# CloudFront Origin Access Identity (for S3)
+resource "aws_cloudfront_origin_access_identity" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
+
+  comment = "Origin Access Identity for S3 Bucket"
+}
+
+# S3 Bucket Policy (for S3)
+resource "aws_s3_bucket_policy" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
+
+  bucket = aws_s3_bucket.this[0].id
+
+  policy = data.aws_iam_policy_document.s3_policy[0].json
+}
+
+# IAM Policy Document (for S3)
+data "aws_iam_policy_document" "s3_policy" {
+  count = var.origin_type == "s3" ? 1 : 0
+
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.this[0].arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.this[0].iam_arn]
+    }
+  }
+}
+
+# CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -11,16 +44,21 @@ resource "aws_cloudfront_distribution" "this" {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
 
-    s3_origin_config {
-      origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this[0].cloudfront_access_identity_path : null
+    dynamic "s3_origin_config" {
+      for_each = var.origin_type == "s3" ? [1] : []
+      content {
+        origin_access_identity = aws_cloudfront_origin_access_identity.this[0].cloudfront_access_identity_path
+      }
     }
 
-    custom_origin_config {
-      origin_protocol_policy = "http-only" # or "https-only" based on your needs
-      http_port              = 80
-      https_port             = 443
-      origin_ssl_protocols   = ["TLSv1.2"]
-      count = var.origin_type == "alb" ? 1 : 0
+    dynamic "custom_origin_config" {
+      for_each = var.origin_type == "alb" ? [1] : []
+      content {
+        origin_protocol_policy = "http-only" # or "https-only" based on your needs
+        http_port              = 80
+        https_port             = 443
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
     }
   }
 
@@ -28,9 +66,23 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
     viewer_protocol_policy = "allow-all"
 
-    allowed_methods = ["GET", "HEAD"]
+    allowed_methods {
+      items = ["GET", "HEAD"]
+      quantity = 2
+    }
 
-    cached_methods = ["GET", "HEAD"]
+    cached_methods {
+      items = ["GET", "HEAD"]
+      quantity = 2
+    }
+
+    forwarded_values {
+      query_string = false
+      headers      = ["Host"]
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {
@@ -44,33 +96,5 @@ resource "aws_cloudfront_distribution" "this" {
     ssl_support_method  = var.origin_type == "alb" ? "sni-only" : null
   }
 
-  # Additional CloudFront distribution settings here
-}
-
-resource "aws_cloudfront_origin_access_identity" "this" {
-  count = var.origin_type == "s3" ? 1 : 0
-
-  comment = "Origin Access Identity for S3 Bucket"
-}
-
-resource "aws_s3_bucket_policy" "this" {
-  count = var.origin_type == "s3" ? 1 : 0
-
-  bucket = aws_s3_bucket.this[0].id
-
-  policy = data.aws_iam_policy_document.s3_policy[0].json
-}
-
-data "aws_iam_policy_document" "s3_policy" {
-  count = var.origin_type == "s3" ? 1 : 0
-
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.this[0].arn}/*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.this[0].iam_arn]
-    }
-  }
+  tags = var.tags
 }
