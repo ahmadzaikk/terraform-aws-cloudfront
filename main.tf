@@ -1,18 +1,15 @@
-# S3 Bucket (if needed)
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
   tags  = var.tags
   bucket = var.s3_bucket_name
 }
 
-# CloudFront Origin Access Identity (for S3)
 resource "aws_cloudfront_origin_access_identity" "this" {
   count = var.origin_type == "s3" ? 1 : 0
 
   comment = "Origin Access Identity for S3 Bucket"
 }
 
-# S3 Bucket Policy (for S3)
 resource "aws_s3_bucket_policy" "this" {
   count = var.origin_type == "s3" ? 1 : 0
 
@@ -21,7 +18,6 @@ resource "aws_s3_bucket_policy" "this" {
   policy = data.aws_iam_policy_document.s3_policy[0].json
 }
 
-# IAM Policy Document (for S3)
 data "aws_iam_policy_document" "s3_policy" {
   count = var.origin_type == "s3" ? 1 : 0
 
@@ -36,7 +32,6 @@ data "aws_iam_policy_document" "s3_policy" {
   }
 }
 
-# CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -96,5 +91,7 @@ resource "aws_cloudfront_distribution" "this" {
     ssl_support_method  = var.origin_type == "alb" ? "sni-only" : null
   }
 
-  tags = var.tags
+  tags = {
+    Name = "example-cloudfront-distribution"
+  }
 }
