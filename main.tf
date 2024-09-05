@@ -1,10 +1,10 @@
-# S3 Bucket Definition
+# Define S3 Bucket
 resource "aws_s3_bucket" "this" {
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# Create CloudFront Origin Access Control (OAC)
+# Define CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "this" {
   name                              = "${var.s3_bucket_name}-oac"
   description                       = "OAC for S3 bucket ${var.s3_bucket_name}"
@@ -13,7 +13,7 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                  = "sigv4"
 }
 
-# CloudFront Distribution using Origin Access Control (OAC)
+# Define CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -22,7 +22,6 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
 
     s3_origin_config {
-      # Remove origin_access_identity, it's not needed with OAC
       origin_access_control_id = aws_cloudfront_origin_access_control.this.id
     }
   }
@@ -53,7 +52,7 @@ resource "aws_cloudfront_distribution" "this" {
   }
 }
 
-# S3 Bucket Policy allowing CloudFront OAC to access the bucket
+# Define S3 Bucket Policy
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
 
