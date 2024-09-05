@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-  tags = var.tags
+  tags  = var.tags
   bucket = var.s3_bucket_name
 }
 
