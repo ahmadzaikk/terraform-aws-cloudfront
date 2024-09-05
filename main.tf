@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-
   bucket = var.s3_bucket_name
+  tags   = var.tags
 }
 
 resource "aws_cloudfront_distribution" "this" {
