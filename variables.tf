@@ -8,6 +8,12 @@ variable "s3_bucket_name" {
   type        = string
 }
 
+variable "default_root_object" {
+  description = "path for the default root"
+  type        = string
+  default     = "index.html"
+}
+
 variable "alb_domain_name" {
   description = "Domain name of the ALB"
   type        = string
