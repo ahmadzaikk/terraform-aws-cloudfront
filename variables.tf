@@ -17,3 +17,9 @@ variable "acm_certificate_arn" {
   description = "ARN of the ACM certificate for CloudFront"
   type        = string
 }
+
+variable "tags" {
+  default     = {}
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+}
