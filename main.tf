@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-  tags  = var.tags
+
   bucket = var.s3_bucket_name
 }
 
@@ -27,13 +27,9 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_domain_name}"
     viewer_protocol_policy = "allow-all"
 
-    allowed_methods {
-      methods = ["GET", "HEAD"]
-    }
+    allowed_methods = ["GET", "HEAD"]
 
-    cached_methods {
-      methods = ["GET", "HEAD"]
-    }
+    cached_methods = ["GET", "HEAD"]
   }
 
   restrictions {
