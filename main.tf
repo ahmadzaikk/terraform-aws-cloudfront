@@ -31,7 +31,7 @@ resource "aws_cloudfront_distribution" "this" {
       origin_protocol_policy = var.origin_type == "alb" ? "https-only" : null
       http_port              = var.origin_type == "alb" ? 80 : null
       https_port             = var.origin_type == "alb" ? 443 : null
-      origin_ssl_protocols   = var.origin_type == "alb" ? ["TLSv1.2"] : null
+      origin_ssl_protocols   = var.origin_type == "alb" ? ["TLSv1", "TLSv1.1", "TLSv1.2"] : null
     }
   }
 
