@@ -2,7 +2,7 @@
 resource "aws_s3_bucket" "origin" {
   bucket_prefix = var.s3_bucket_prefix
   acl           = "private"
-  tags = merge(var.tags, tomap({"Name" = var.bucket}))
+  tags = var.tags
 }
 
 # S3 Bucket policy to allow CloudFront access
@@ -22,11 +22,15 @@ resource "aws_s3_bucket_policy" "origin" {
       }
     ]
   })
+
+  tags = var.tags
 }
 
 # CloudFront Origin Access Identity
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = var.origin_access_identity_comment
+
+  tags = var.tags
 }
 
 # CloudFront Distribution
@@ -64,11 +68,16 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
-  viewer_certificate {
-    acm_certificate_arn = var.acm_certificate_arn
-    ssl_support_method  = var.ssl_support_method
+  dynamic "viewer_certificate" {
+    for_each = var.acm_certificate_arn != "" ? [1] : []
+    content {
+      acm_certificate_arn = var.acm_certificate_arn
+      ssl_support_method  = var.ssl_support_method
+    }
   }
 
   price_class = var.price_class
   enabled     = var.enabled
+
+  tags = var.tags
 }
