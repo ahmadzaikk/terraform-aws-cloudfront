@@ -52,8 +52,9 @@ variable "forward_headers" {
 }
 
 variable "acm_certificate_arn" {
-  description = "The ARN of the ACM certificate."
+  description = "The ARN of the ACM certificate (leave empty if not using SSL/TLS)."
   type        = string
+  default     = ""
 }
 
 variable "ssl_support_method" {
@@ -78,4 +79,10 @@ variable "origin_access_identity_comment" {
   description = "Comment for the origin access identity."
   type        = string
   default     = "example-origin-access-identity"
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources."
+  type        = map(string)
+  default     = {}
 }
