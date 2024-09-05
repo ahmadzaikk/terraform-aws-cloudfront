@@ -21,6 +21,7 @@ variable "acm_certificate_arn" {
 }
 
 
+
 variable "tags" {
   default     = {}
   description = "A map of tags to add to all resources"
