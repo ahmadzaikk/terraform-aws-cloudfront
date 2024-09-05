@@ -1,110 +1,53 @@
-# S3 Bucket for the origin
-resource "aws_s3_bucket" "origin" {
-  bucket_prefix = var.s3_bucket_prefix
-
+resource "aws_s3_bucket" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
+  bucket = var.s3_bucket_name
   tags = var.tags
 }
 
-# S3 Bucket ACL
-resource "aws_s3_bucket_acl" "origin" {
-  bucket = aws_s3_bucket.origin.id
-  acl    = "private"
-}
-
-# S3 Bucket policy to allow CloudFront access
-resource "aws_s3_bucket_policy" "origin" {
-  bucket = aws_s3_bucket.origin.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-        Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.origin.arn}/*"
-      }
-    ]
-  })
-
-  
-}
-
-# CloudFront Origin Access Identity
-resource "aws_cloudfront_origin_access_identity" "this" {
-  comment = var.origin_access_identity_comment
-
-  
-}
-
-# CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = aws_s3_bucket.origin.bucket_regional_domain_name
-    origin_id   = "S3-${aws_s3_bucket.origin.id}"
+    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this.bucket_regional_domain_name : var.alb_domain_name
+    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_domain_name}"
 
     s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
+      origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path : null
+    }
+
+    custom_origin_config {
+      origin_protocol_policy = var.origin_type == "alb" ? "http-only" : null
+      http_port              = var.origin_type == "alb" ? 80 : null
+      https_port             = var.origin_type == "alb" ? 443 : null
+      origin_ssl_protocols   = var.origin_type == "alb" ? ["TLSv1.2"] : null
     }
   }
 
-  default_cache_behavior {
-    target_origin_id = "S3-${aws_s3_bucket.origin.id}"
+  # Additional CloudFront distribution settings here
+}
 
-    viewer_protocol_policy = var.viewer_protocol_policy
+resource "aws_cloudfront_origin_access_identity" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
 
-    allowed_methods {
-      items = var.allowed_methods
-      quantity = length(var.allowed_methods)
-    }
+  comment = "Origin Access Identity for S3 Bucket"
+}
 
-    cached_methods {
-      items = var.cached_methods
-      quantity = length(var.cached_methods)
-    }
+resource "aws_s3_bucket_policy" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
 
-    min_ttl                = var.min_ttl
-    default_ttl            = var.default_ttl
-    max_ttl                = var.max_ttl
+  bucket = aws_s3_bucket.this.bucket
 
-    forwarded_values {
-      query_string = var.forward_query_string
+  policy = data.aws_iam_policy_document.s3_policy.json
+}
 
-      headers {
-        items = var.forward_headers
-        quantity = length(var.forward_headers)
-      }
+data "aws_iam_policy_document" "s3_policy" {
+  count = var.origin_type == "s3" ? 1 : 0
 
-      cookies {
-        forward = var.forward_cookies
-      }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.this.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
     }
   }
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"  # Adjust if needed
-    }
-  }
-
-  dynamic "viewer_certificate" {
-    for_each = var.acm_certificate_arn != "" ? [1] : []
-    content {
-      acm_certificate_arn = var.acm_certificate_arn
-      ssl_support_method  = var.ssl_support_method
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
-    acm_certificate_arn             = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
-    ssl_support_method              = var.ssl_support_method
-  }
-
-  price_class = var.price_class
-  enabled     = var.enabled
-
-  tags = var.tags
 }
