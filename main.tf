@@ -43,10 +43,8 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   viewer_certificate {
-    count = var.origin_type == "alb" ? 1 : 0
-
-    acm_certificate_arn = var.acm_certificate_arn
-    ssl_support_method  = "sni-only"
+    acm_certificate_arn = var.origin_type == "alb" ? var.acm_certificate_arn : null
+    ssl_support_method  = var.origin_type == "alb" ? "sni-only" : null
   }
 
   # Additional CloudFront distribution settings here
