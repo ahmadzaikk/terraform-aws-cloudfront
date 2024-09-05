@@ -1,17 +1,19 @@
-
-
-# S3 Bucket Resource
+# S3 Bucket Definition
 resource "aws_s3_bucket" "this" {
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# CloudFront Origin Access Identity for S3
-resource "aws_cloudfront_origin_access_identity" "this" {
-  comment = "Origin Access Identity for S3 Bucket"
+# Create CloudFront Origin Access Control (OAC)
+resource "aws_cloudfront_origin_access_control" "this" {
+  name                              = "${var.s3_bucket_name}-oac"
+  description                       = "OAC for S3 bucket ${var.s3_bucket_name}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
-# CloudFront Distribution
+# CloudFront Distribution with OAC
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -20,7 +22,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
 
     s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
+      origin_access_control_id = aws_cloudfront_origin_access_control.this.id
     }
   }
 
@@ -28,7 +30,7 @@ resource "aws_cloudfront_distribution" "this" {
     target_origin_id       = "S3-${aws_s3_bucket.this.bucket}"
     viewer_protocol_policy = "redirect-to-https"
 
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods = ["GET", "HEAD"]
     cached_methods  = ["GET", "HEAD"]
 
     forwarded_values {
@@ -37,10 +39,6 @@ resource "aws_cloudfront_distribution" "this" {
         forward = "none"
       }
     }
-
-    min_ttl     = 0
-    default_ttl = 3600
-    max_ttl     = 86400
   }
 
   restrictions {
@@ -52,28 +50,23 @@ resource "aws_cloudfront_distribution" "this" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
-
-  tags = {
-    Name = "example-cloudfront-distribution"
-  }
 }
 
-# S3 Bucket Policy
+# S3 Bucket Policy allowing CloudFront OAC to access the bucket
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
 
-  policy = data.aws_iam_policy_document.s3_policy.json
-}
-
-# IAM Policy Document for S3
-data "aws_iam_policy_document" "s3_policy" {
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.this.arn}/*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.this.iam_arn]
-    }
-  }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "s3:GetObject"
+        Resource = "${aws_s3_bucket.this.arn}/*"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_control.this.signing_aws_service_principal
+        }
+      }
+    ]
+  })
 }
