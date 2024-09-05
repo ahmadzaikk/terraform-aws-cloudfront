@@ -1,10 +1,5 @@
-variable "origin_domain_name" {
-  description = "The domain name of the origin."
-  type        = string
-}
-
-variable "origin_id" {
-  description = "The unique identifier for the origin."
+variable "s3_bucket_prefix" {
+  description = "Prefix for the S3 bucket name."
   type        = string
 }
 
