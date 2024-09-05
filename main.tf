@@ -22,7 +22,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = "S3-${aws_s3_bucket.this.bucket}"
 
     s3_origin_config {
-      origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+      origin_access_identity = "origin-access-identity/cloudfront/${aws_cloudfront_origin_access_control.this.id}"  # Updated to use OAC identity
     }
   }
 
