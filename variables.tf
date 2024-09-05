@@ -9,14 +9,15 @@ variable "s3_bucket_name" {
 }
 
 variable "alb_domain_name" {
-  description = "Domain name of the ALB"
+  description = "Domain name of the ALB (optional if origin is s3)"
   type        = string
+  default     = "" # Default to empty if not used
 }
 
 variable "acm_certificate_arn" {
-  description = "ARN of the ACM certificate for CloudFront"
+  description = "ARN of the ACM certificate for CloudFront (optional if origin is s3)"
   type        = string
-  default     = "" # Set a default if it's not always required
+  default     = "" # Default to empty if not used
 }
 
 
