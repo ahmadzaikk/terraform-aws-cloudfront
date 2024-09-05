@@ -13,9 +13,11 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                  = "sigv4"
 }
 
+
 # Define CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
+  default_root_object = var.default_root_object
 
   origin {
     domain_name = aws_s3_bucket.this.bucket_regional_domain_name
