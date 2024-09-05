@@ -1,9 +1,3 @@
-resource "aws_s3_bucket" "this" {
-  count = var.origin_type == "s3" ? 1 : 0
-  tags  = var.tags
-  bucket = var.s3_bucket_name
-}
-
 resource "aws_cloudfront_distribution" "this" {
   enabled = true
 
@@ -35,6 +29,14 @@ resource "aws_cloudfront_distribution" "this" {
 
     allowed_methods = ["GET", "HEAD"]
     cached_methods  = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = false
+      headers      = ["Host"]
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {
@@ -73,7 +75,7 @@ data "aws_iam_policy_document" "s3_policy" {
 
 resource "aws_s3_bucket_policy" "this" {
   count = var.origin_type == "s3" ? 1 : 0
-
+  tags  = var.tags
   bucket = aws_s3_bucket.this[0].id
 
   policy = data.aws_iam_policy_document.s3_policy[0].json
