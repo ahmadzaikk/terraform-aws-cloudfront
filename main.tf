@@ -29,14 +29,14 @@ resource "aws_s3_bucket_policy" "origin" {
     ]
   })
 
-
+  
 }
 
 # CloudFront Origin Access Identity
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = var.origin_access_identity_comment
 
-
+ 
 }
 
 # CloudFront Distribution
