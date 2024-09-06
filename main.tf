@@ -11,8 +11,7 @@ resource "aws_cloudfront_distribution" "this" {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this.bucket_regional_domain_name : var.alb_arn
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
 
-    # Set origin_access_control_id only if origin type is S3
-    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this.id : null
+    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
   }
 
   default_cache_behavior {
@@ -42,6 +41,9 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
+
+
 
 # Ensure these are declared correctly in your module
 resource "aws_cloudfront_origin_access_control" "this" {
