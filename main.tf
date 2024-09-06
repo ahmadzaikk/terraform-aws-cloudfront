@@ -14,6 +14,9 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
+data "aws_cloudfront_cache_policy" "cache-optimized" {
+  name = "Managed-CachingOptimized"
+}
 
 # Define CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
