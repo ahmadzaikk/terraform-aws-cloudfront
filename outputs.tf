@@ -5,3 +5,11 @@ output "s3_bucket_name" {
   value       = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket : null
   condition   = var.origin_type == "s3"
 }
+
+# Output for CloudFront distribution (S3)
+output "cloudfront_s3_domain_name" {
+  value       = aws_cloudfront_distribution.s3[0].domain_name
+  description = "The domain name of the CloudFront distribution for S3"
+}
+
+
