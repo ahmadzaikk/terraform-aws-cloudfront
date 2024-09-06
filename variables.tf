@@ -1,11 +1,10 @@
-
 variable "s3_bucket_name" {
   description = "The name of the S3 bucket"
   type        = string
 }
 
 variable "alb_domain_name" {
-  description = "The domain name of the ALB"
+  description = "The domain name of the ALB (e.g. my-alb-1234567890.us-west-2.elb.amazonaws.com)"
   type        = string
 }
 
