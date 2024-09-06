@@ -15,6 +15,11 @@ variable "alb_origin_id" {
   type        = string
 }
 
+variable "alb_arn" {
+  description = "The ARN of the Application Load Balancer."
+  type        = string
+}
+
 variable "origin_type" {
   description = "The type of the origin (s3 or alb)"
   type        = string
