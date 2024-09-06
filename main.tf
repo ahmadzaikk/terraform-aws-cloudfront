@@ -18,6 +18,7 @@ data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
 ## cloudfront distribution
+
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = var.default_root_object
@@ -28,7 +29,7 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
 
     # Set origin_access_control_id only if origin type is S3
-    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this.id : null
+    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
   }
 
   default_cache_behavior {
@@ -58,6 +59,7 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
 
 
 
