@@ -21,10 +21,7 @@ resource "aws_cloudfront_distribution" "s3" {
   origin {
     domain_name = aws_s3_bucket.this[0].bucket_regional_domain_name
     origin_id   = "S3-${aws_s3_bucket.this[0].bucket}"
-
-    s3_origin_config {
-      origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
-    }
+    origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
   }
 
   default_cache_behavior {
@@ -87,3 +84,5 @@ resource "aws_cloudfront_distribution" "alb" {
 data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
+
+
