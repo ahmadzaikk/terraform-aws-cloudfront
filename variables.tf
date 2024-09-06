@@ -5,10 +5,7 @@ variable "s3_bucket_name" {
 }
 
 
-variable "alb_domain_name" {
-  description = "The domain name of the ALB (e.g. my-alb-1234567890.us-west-2.elb.amazonaws.com)"
-  type        = string
-}
+
 
 variable "alb_origin_id" {
   description = "The origin ID for the ALB"
