@@ -55,7 +55,7 @@ resource "aws_cloudfront_distribution" "s3" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods        = ["GET", "HEAD"]
+    allowed_methods        = ["GET", "HEAD","OPTIONS","PUT","POST","PATCH","DELETE]
     cached_methods         = ["GET", "HEAD"]
   }
 
