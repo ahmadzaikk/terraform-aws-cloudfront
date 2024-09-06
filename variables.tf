@@ -38,3 +38,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "error_pages" {
+  description = "Map of error codes to custom error response settings"
+  type = map(object({
+    response_page_path    = string
+    response_code         = number
+    error_caching_min_ttl = number
+  }))
+  default = null
+}
+
+
