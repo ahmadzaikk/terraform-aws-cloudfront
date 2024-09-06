@@ -3,7 +3,11 @@ variable "s3_bucket_name" {
   type        = string
   default     = ""  # Default to empty if not provided
 }
-
+variable "acm_certificate_arn" {
+  description = "The ARN of the custom SSL/TLS certificate for CloudFront"
+  type        = string
+  default     = ""
+}
 variable "cache_policy_type" {
   type    = string
   default = "cache-optimized" # Options can be "cache-optimized" or "caching-disabled"
