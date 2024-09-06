@@ -4,6 +4,10 @@ variable "s3_bucket_name" {
   default     = ""  # Default to empty if not provided
 }
 
+variable "cache_policy_type" {
+  type    = string
+  default = "cache-optimized" # Options can be "cache-optimized" or "caching-disabled"
+}
 
 variable "alb_origin_id" {
   description = "The origin ID for the ALB"
