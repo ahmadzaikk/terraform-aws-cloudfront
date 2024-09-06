@@ -14,6 +14,7 @@ variable "alb_origin_id" {
 variable "alb_arn" {
   description = "The ARN of the Application Load Balancer."
   type        = string
+  default     = ""
 }
 
 variable "origin_type" {
