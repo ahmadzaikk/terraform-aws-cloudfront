@@ -54,9 +54,13 @@ resource "aws_cloudfront_distribution" "s3" {
     target_origin_id       = "S3-${aws_s3_bucket.this[0].bucket}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
-    cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods        = ["GET", "HEAD","OPTIONS","PUT","POST","PATCH","DELETE"]
-    cached_methods         = ["GET", "HEAD"]
+
+    cache_policy_id = var.cache_policy_type == "cache-optimized" ?
+      data.aws_cloudfront_cache_policy.cache_optimized.id :
+      data.aws_cloudfront_cache_policy.caching_disabled.id
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods  = ["GET", "HEAD"]
   }
 
   restrictions {
@@ -91,9 +95,13 @@ resource "aws_cloudfront_distribution" "alb" {
     target_origin_id       = "ALB-${var.alb_arn}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
-    cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
+
+    cache_policy_id = var.cache_policy_type == "cache-optimized" ?
+      data.aws_cloudfront_cache_policy.cache_optimized.id :
+      data.aws_cloudfront_cache_policy.caching_disabled.id
+
+    allowed_methods = ["GET", "HEAD"]
+    cached_methods  = ["GET", "HEAD"]
   }
 
   restrictions {
@@ -107,8 +115,12 @@ resource "aws_cloudfront_distribution" "alb" {
   }
 }
 
+
 data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
 
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
 
