@@ -1,20 +1,3 @@
-variable "origin_type" {
-  description = "The origin type for CloudFront: choose 's3' or 'alb'."
-  type        = string
-  default     = "s3"  # Set to either "s3" or "alb" based on your preference.
-}
-
-variable "alb_domain_name" {
-  description = "The domain name of the ALB if using ALB as the origin."
-  type        = string
-  default     = ""
-}
-
-variable "alb_origin_id" {
-  description = "The origin ID for the ALB."
-  type        = string
-  default     = "ALB-origin"
-}
 
 # Define S3 Bucket (only created if the origin is S3)
 resource "aws_s3_bucket" "this" {
