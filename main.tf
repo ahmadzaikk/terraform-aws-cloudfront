@@ -8,15 +8,15 @@ resource "aws_cloudfront_distribution" "this" {
   default_root_object = var.default_root_object
 
   origin {
-    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_arn
-    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
+    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this.bucket_regional_domain_name : var.alb_arn
+    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
 
-    # For S3 origin, ensure that the S3 bucket is properly referenced
-    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
+    # Set origin_access_control_id only if origin type is S3
+    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this.id : null
   }
 
   default_cache_behavior {
-    target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
+    target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
@@ -41,4 +41,18 @@ resource "aws_cloudfront_distribution" "this" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+}
+
+# Ensure these are declared correctly in your module
+resource "aws_cloudfront_origin_access_control" "this" {
+  count                            = var.origin_type == "s3" ? 1 : 0
+  name                             = "${var.s3_bucket_name}-oac"
+  description                      = "OAC for S3 bucket ${var.s3_bucket_name}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                 = "always"
+  signing_protocol                 = "sigv4"
+}
+
+data "aws_cloudfront_cache_policy" "cache-optimized" {
+  name = "Managed-CachingOptimized"
 }
