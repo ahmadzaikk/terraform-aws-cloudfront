@@ -12,6 +12,13 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
 
     origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+    }
   }
 
   default_cache_behavior {
@@ -21,14 +28,6 @@ resource "aws_cloudfront_distribution" "this" {
     cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-
-    # Uncomment and configure if needed
-    # forwarded_values {
-    #   query_string = false
-    #   cookies {
-    #     forward = "none"
-    #   }
-    # }
   }
 
   restrictions {
@@ -41,6 +40,7 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
 
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
