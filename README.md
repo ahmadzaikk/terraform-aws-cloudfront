@@ -42,4 +42,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | n/a |
+| <a name="output_cloudfront_alb_domain_name"></a> [cloudfront\_alb\_domain\_name](#output\_cloudfront\_alb\_domain\_name) | The domain name of the CloudFront distribution for ALB |
+| <a name="output_cloudfront_s3_domain_name"></a> [cloudfront\_s3\_domain\_name](#output\_cloudfront\_s3\_domain\_name) | The domain name of the CloudFront distribution for S3 |
+| <a name="output_s3_bucket_name"></a> [s3\_bucket\_name](#output\_s3\_bucket\_name) | The name of the S3 bucket (only when origin\_type is 's3') |
