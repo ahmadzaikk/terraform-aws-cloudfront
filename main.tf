@@ -17,26 +17,18 @@ resource "aws_cloudfront_origin_access_control" "this" {
 data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
-
+## cloudfront distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = var.default_root_object
 
-  # Dynamic Origins
-  dynamic "origin" {
-    for_each = var.origin_type == "s3" ? [1] : (var.origin_type == "alb" ? [1] : [])
-    content {
-      domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_arn
-      origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
+  # Define the origin block conditionally
+  origin {
+    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_arn
+    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
 
-      # For S3 origin
-      dynamic "origin_access_control_id" {
-        for_each = var.origin_type == "s3" ? [1] : []
-        content {
-          origin_access_control_id = aws_cloudfront_origin_access_control.this.id
-        }
-      }
-    }
+    # Set origin_access_control_id only if origin type is S3
+    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this.id : null
   }
 
   default_cache_behavior {
@@ -66,6 +58,7 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
 
 
 
