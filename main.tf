@@ -28,7 +28,7 @@ resource "aws_cloudfront_distribution" "this" {
   origin {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : var.alb_origin_id
-    count       = 1
+  
 
     # Conditional OAC ID for S3, no OAC for ALB
     origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
