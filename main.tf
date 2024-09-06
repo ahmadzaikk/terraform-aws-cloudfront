@@ -18,27 +18,29 @@ data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
 
-# Define CloudFront Distribution
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = var.default_root_object
 
-  origin {
-    count = var.origin_type == "s3" ? 1 : 0
-    domain_name = aws_s3_bucket.this[0].bucket_regional_domain_name
-    origin_id   = "S3-${aws_s3_bucket.this[0].bucket}"
-    origin_access_control_id = aws_cloudfront_origin_access_control.this[0].id
-  }
+  # Dynamic Origins
+  dynamic "origin" {
+    for_each = var.origin_type == "s3" ? [1] : (var.origin_type == "alb" ? [1] : [])
+    content {
+      domain_name = var.origin_type == "s3" ? aws_s3_bucket.this.bucket_regional_domain_name : var.alb_arn
+      origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
 
-  origin {
-    count = var.origin_type == "alb" ? 1 : 0
-    domain_name = var.alb_arn
-    origin_id   = "ALB-${var.alb_arn}"
-    # Add any specific configuration for ALB origin if needed
+      # For S3 origin
+      dynamic "origin_access_control_id" {
+        for_each = var.origin_type == "s3" ? [1] : []
+        content {
+          origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+        }
+      }
+    }
   }
 
   default_cache_behavior {
-    target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
+    target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this.bucket}" : "ALB-${var.alb_arn}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
@@ -64,6 +66,7 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
 
 # Define S3 Bucket Policy
 resource "aws_s3_bucket_policy" "this" {
