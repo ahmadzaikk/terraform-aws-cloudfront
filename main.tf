@@ -1,11 +1,31 @@
-# Define S3 Bucket
+variable "origin_type" {
+  description = "The origin type for CloudFront: choose 's3' or 'alb'."
+  type        = string
+  default     = "s3"  # Set to either "s3" or "alb" based on your preference.
+}
+
+variable "alb_domain_name" {
+  description = "The domain name of the ALB if using ALB as the origin."
+  type        = string
+  default     = ""
+}
+
+variable "alb_origin_id" {
+  description = "The origin ID for the ALB."
+  type        = string
+  default     = "ALB-origin"
+}
+
+# Define S3 Bucket (only created if the origin is S3)
 resource "aws_s3_bucket" "this" {
+  count  = var.origin_type == "s3" ? 1 : 0
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# Define CloudFront Origin Access Control (OAC)
+# Define CloudFront Origin Access Control (OAC) (only created if the origin is S3)
 resource "aws_cloudfront_origin_access_control" "this" {
+  count                             = var.origin_type == "s3" ? 1 : 0
   name                              = "${var.s3_bucket_name}-oac"
   description                       = "OAC for S3 bucket ${var.s3_bucket_name}"
   origin_access_control_origin_type = "s3"
@@ -17,32 +37,27 @@ data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
 
-# Define CloudFront Distribution
+# Define CloudFront Distribution with dynamic origin (S3 or ALB)
 resource "aws_cloudfront_distribution" "this" {
-  enabled = true
+  enabled             = true
   default_root_object = var.default_root_object
 
   origin {
-    domain_name = aws_s3_bucket.this.bucket_regional_domain_name
-    origin_id   = "S3-${aws_s3_bucket.this.bucket}"
-    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
+    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : var.alb_origin_id
+    count       = 1
+
+    # Conditional OAC ID for S3, no OAC for ALB
+    origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
   }
 
-
   default_cache_behavior {
-    target_origin_id       = "S3-${aws_s3_bucket.this.bucket}"
+    target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : var.alb_origin_id
     viewer_protocol_policy = "redirect-to-https"
     compress               = true 
-    cache_policy_id  = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods = ["GET", "HEAD"]
-    cached_methods  = ["GET", "HEAD"]
-
-    #forwarded_values {
-     # query_string = false
-      #cookies {
-       # forward = "none"
-      #}
-    #}
+    cache_policy_id         = data.aws_cloudfront_cache_policy.cache-optimized.id
+    allowed_methods         = ["GET", "HEAD"]
+    cached_methods          = ["GET", "HEAD"]
   }
 
   restrictions {
@@ -56,9 +71,10 @@ resource "aws_cloudfront_distribution" "this" {
   }
 }
 
-# Define S3 Bucket Policy
+# S3 Bucket Policy (only applied if S3 is the origin)
 resource "aws_s3_bucket_policy" "this" {
-  bucket = aws_s3_bucket.this.id
+  count  = var.origin_type == "s3" ? 1 : 0
+  bucket = aws_s3_bucket.this[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -66,7 +82,7 @@ resource "aws_s3_bucket_policy" "this" {
       {
         Effect = "Allow"
         Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.this.arn}/*"
+        Resource = "${aws_s3_bucket.this[0].arn}/*"
         Principal = {
           Service = "cloudfront.amazonaws.com"
         },
