@@ -108,11 +108,3 @@ resource "aws_cloudfront_distribution" "alb" {
 }
 
 
-data "aws_cloudfront_cache_policy" "cache-optimized" {
-  name = "Managed-CachingOptimized"
-}
-
-data "aws_cloudfront_cache_policy" "caching_disabled" {
-  name = "Managed-CachingDisabled"
-}
-
