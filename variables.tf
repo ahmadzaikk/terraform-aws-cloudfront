@@ -5,11 +5,10 @@ variable "s3_bucket_name" {
 }
 
 
-
-
 variable "alb_origin_id" {
   description = "The origin ID for the ALB"
   type        = string
+  default     = ""
 }
 
 variable "alb_arn" {
