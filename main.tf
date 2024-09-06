@@ -1,8 +1,29 @@
-resource "aws_s3_bucket" "this" {
-  count  = var.origin_type == "s3" ? 1 : 0
-  bucket = var.s3_bucket_name
-  tags   = var.tags
+resource "aws_s3_bucket_policy" "this" {
+  count = var.origin_type == "s3" ? 1 : 0
+  bucket = aws_s3_bucket.this[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action = "s3:GetObject"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${aws_cloudfront_distribution.s3[0].id}"
+          }
+        }
+      }
+    ]
+  })
 }
+
+data "aws_caller_identity" "current" {}
+
 
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
