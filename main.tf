@@ -4,6 +4,9 @@ resource "aws_s3_bucket" "this" {
   tags   = var.tags
 }
 
+resource "aws_cloudfront_origin_access_identity" "this" {
+  comment = "OAI for S3 bucket ${var.s3_bucket_name}"
+}
 
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
