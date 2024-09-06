@@ -1,12 +1,11 @@
-
-# Define S3 Bucket (only created if the origin is S3)
+# Define S3 Bucket
 resource "aws_s3_bucket" "this" {
   count  = var.origin_type == "s3" ? 1 : 0
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# Define CloudFront Origin Access Control (OAC) (only created if the origin is S3)
+# Define CloudFront Origin Access Control (OAC) (only for S3)
 resource "aws_cloudfront_origin_access_control" "this" {
   count                             = var.origin_type == "s3" ? 1 : 0
   name                              = "${var.s3_bucket_name}-oac"
@@ -16,6 +15,7 @@ resource "aws_cloudfront_origin_access_control" "this" {
   signing_protocol                  = "sigv4"
 }
 
+# CloudFront Cache Policy Data Source
 data "aws_cloudfront_cache_policy" "cache-optimized" {
   name = "Managed-CachingOptimized"
 }
@@ -24,24 +24,22 @@ data "aws_cloudfront_cache_policy" "cache-optimized" {
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = var.default_root_object
-  tags   = var.tags
 
   origin {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
     origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : var.alb_origin_id
-  
-
-    # Conditional OAC ID for S3, no OAC for ALB
+    
+    # Only apply origin access control if using S3
     origin_access_control_id = var.origin_type == "s3" ? aws_cloudfront_origin_access_control.this[0].id : null
   }
 
   default_cache_behavior {
     target_origin_id       = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : var.alb_origin_id
     viewer_protocol_policy = "redirect-to-https"
-    compress               = true 
-    cache_policy_id         = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods         = ["GET", "HEAD"]
-    cached_methods          = ["GET", "HEAD"]
+    compress               = true
+    cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
   }
 
   restrictions {
@@ -55,7 +53,7 @@ resource "aws_cloudfront_distribution" "this" {
   }
 }
 
-# S3 Bucket Policy (only applied if S3 is the origin)
+# Define S3 Bucket Policy (only applied if S3 is the origin)
 resource "aws_s3_bucket_policy" "this" {
   count  = var.origin_type == "s3" ? 1 : 0
   bucket = aws_s3_bucket.this[0].id
