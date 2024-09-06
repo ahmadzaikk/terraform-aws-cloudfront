@@ -1,11 +1,11 @@
-# Define S3 Bucket
+# Define S3 Bucket (only if origin_type is s3)
 resource "aws_s3_bucket" "this" {
   count  = var.origin_type == "s3" ? 1 : 0
   bucket = var.s3_bucket_name
   tags   = var.tags
 }
 
-# Define CloudFront Origin Access Control (OAC) (only for S3)
+# Define CloudFront Origin Access Control (OAC) for S3 (only if origin_type is s3)
 resource "aws_cloudfront_origin_access_control" "this" {
   count                             = var.origin_type == "s3" ? 1 : 0
   name                              = "${var.s3_bucket_name}-oac"
@@ -38,8 +38,16 @@ resource "aws_cloudfront_distribution" "this" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.cache-optimized.id
-    allowed_methods        = ["GET", "HEAD"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
+
+    # For ALB, allow forwarding headers and cookies if needed
+    forwarded_values {
+      query_string = true
+      cookies {
+        forward = "all"
+      }
+    }
   }
 
   restrictions {
