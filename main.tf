@@ -42,10 +42,6 @@ resource "aws_cloudfront_distribution" "this" {
   }
 }
 
-
-
-
-# Ensure these are declared correctly in your module
 resource "aws_cloudfront_origin_access_control" "this" {
   count                            = var.origin_type == "s3" ? 1 : 0
   name                             = "${var.s3_bucket_name}-oac"
