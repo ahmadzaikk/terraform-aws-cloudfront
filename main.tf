@@ -59,6 +59,16 @@ resource "aws_cloudfront_distribution" "s3" {
     cached_methods         = ["GET", "HEAD"]
   }
 
+  dynamic "custom_error_response" {
+    for_each = var.error_pages != null ? var.error_pages : {}
+    content {
+      error_code            = custom_error_response.key
+      response_page_path    = custom_error_response.value.response_page_path
+      response_code         = custom_error_response.value.response_code
+      error_caching_min_ttl = custom_error_response.value.error_caching_min_ttl
+    }
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -96,6 +106,16 @@ resource "aws_cloudfront_distribution" "alb" {
     cached_methods         = ["GET", "HEAD"]
   }
 
+  dynamic "custom_error_response" {
+    for_each = var.error_pages != null ? var.error_pages : {}
+    content {
+      error_code            = custom_error_response.key
+      response_page_path    = custom_error_response.value.response_page_path
+      response_code         = custom_error_response.value.response_code
+      error_caching_min_ttl = custom_error_response.value.error_caching_min_ttl
+    }
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -106,5 +126,3 @@ resource "aws_cloudfront_distribution" "alb" {
     cloudfront_default_certificate = true
   }
 }
-
-
