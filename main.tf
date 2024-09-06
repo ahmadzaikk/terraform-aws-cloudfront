@@ -24,6 +24,7 @@ data "aws_cloudfront_cache_policy" "cache-optimized" {
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = var.default_root_object
+  tags   = var.tags
 
   origin {
     domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_domain_name
