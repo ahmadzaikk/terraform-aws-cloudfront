@@ -13,12 +13,19 @@ resource "aws_cloudfront_distribution" "this" {
   default_root_object = var.default_root_object
 
   origin {
-    domain_name = var.origin_type == "s3" ? aws_s3_bucket.this[0].bucket_regional_domain_name : var.alb_arn
-    origin_id   = var.origin_type == "s3" ? "S3-${aws_s3_bucket.this[0].bucket}" : "ALB-${var.alb_arn}"
+    count       = var.origin_type == "s3" ? 1 : 0
+    domain_name = aws_s3_bucket.this[0].bucket_regional_domain_name
+    origin_id   = "S3-${aws_s3_bucket.this[0].bucket}"
 
     s3_origin_config {
-      origin_access_identity = var.origin_type == "s3" ? aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path : null
+      origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
     }
+  }
+
+  origin {
+    count       = var.origin_type != "s3" ? 1 : 0
+    domain_name = var.alb_arn
+    origin_id   = "ALB-${var.alb_arn}"
 
     custom_origin_config {
       http_port              = 80
@@ -47,6 +54,7 @@ resource "aws_cloudfront_distribution" "this" {
     cloudfront_default_certificate = true
   }
 }
+
 
 
 
