@@ -26,10 +26,6 @@ variable "acm_certificate_arn" {
   default     = "" # Default to empty if not used
 }
 
-variable "origin_type" {
-  default = "alb"
-}
-
 
 variable "alb_origin_id" {
   default = "MyALB"
