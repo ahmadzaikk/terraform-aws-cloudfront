@@ -30,14 +30,10 @@ variable "origin_type" {
   default = "alb"
 }
 
-variable "alb_domain_name" {
-  default = "your-alb-domain-name.us-east-1.elb.amazonaws.com"
-}
 
 variable "alb_origin_id" {
   default = "MyALB"
 }
-
 
 
 variable "tags" {
