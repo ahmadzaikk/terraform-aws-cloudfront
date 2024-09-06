@@ -1,7 +1,9 @@
 variable "s3_bucket_name" {
-  description = "The name of the S3 bucket"
+  description = "The name of the S3 bucket (optional if using ALB as origin)"
   type        = string
+  default     = ""  # Default to empty if not provided
 }
+
 
 variable "alb_domain_name" {
   description = "The domain name of the ALB (e.g. my-alb-1234567890.us-west-2.elb.amazonaws.com)"
