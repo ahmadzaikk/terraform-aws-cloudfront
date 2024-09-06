@@ -3,6 +3,5 @@ output "cloudfront_domain_name" {
 }
 
 output "s3_bucket_name" {
-  value = aws_s3_bucket.this[0].bucket
-  condition = var.origin_type == "s3"
+  value = var.origin_type == "s3" ? aws_s3_bucket.example.bucket : null
 }
