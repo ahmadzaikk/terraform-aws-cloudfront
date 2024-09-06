@@ -80,3 +80,4 @@ resource "aws_s3_bucket_policy" "this" {
 
 # Data for current AWS caller identity
 data "aws_caller_identity" "current" {}
+
