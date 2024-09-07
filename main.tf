@@ -59,6 +59,8 @@ resource "aws_cloudfront_distribution" "s3" {
     cached_methods         = ["GET", "HEAD"]
   }
 
+  aliases = var.alternate_domain_names
+
   viewer_certificate {
     acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
     cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
@@ -108,6 +110,8 @@ resource "aws_cloudfront_distribution" "alb" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
   }
+
+  aliases = var.alternate_domain_names
 
   viewer_certificate {
     acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
