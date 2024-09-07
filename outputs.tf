@@ -18,7 +18,7 @@ output "cloudfront_alb_domain_name" {
 }
 
 # Output for CloudFront distribution ID
-output "cloudfront_distribution_id" {
+output "cloudfront_distribution_zone_id" {
   value = var.origin_type == "s3" ? aws_cloudfront_distribution.s3[0].id : aws_cloudfront_distribution.alb[0].id
   description = "The CloudFront distribution ID"
 }
