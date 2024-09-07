@@ -8,6 +8,13 @@ variable "acm_certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "alternate_domain_names" {
+  description = "List of alternate domain names (CNAMEs)"
+  type        = list(string)
+  default     = []
+}
+
 variable "cache_policy_type" {
   type    = string
   default = "cache-optimized" # Options can be "cache-optimized" or "caching-disabled"
