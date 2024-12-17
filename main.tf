@@ -18,7 +18,7 @@ resource "aws_s3_bucket_policy" "this" {
         Principal = {
           Service = "cloudfront.amazonaws.com"
         }
-        Action = "s3:GetObject"
+        Action = ["s3:GetObject","s3:HeadBucket"]
         Resource = "arn:aws:s3:::${aws_s3_bucket.this[0].id}/*"
         Condition = {
           StringEquals = {
